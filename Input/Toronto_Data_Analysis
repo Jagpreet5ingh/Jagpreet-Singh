@@ -1,0 +1,61 @@
+title: "Toronto Data Analysis (V2)"
+author: "Jagpreet Singh"
+format: html
+---
+```{r}
+#install.packages("opendatatoronto")
+#install.packages("dplyr")
+#install.packages ("tidyverse")
+#install.packages ("janitor")
+
+```
+```{r}
+library(opendatatoronto)
+library(dplyr)
+library(tidyverse)
+library(janitor)
+
+# get package
+package <- show_package("c4052ff7-a09d-4eaf-84e6-6669519f413d")
+package
+ 
+# get all resources for this package
+resources <- list_package_resources("c4052ff7-a09d-4eaf-84e6-6669519f413d")
+ 
+# identify datastore resources; by default, Toronto Open Data sets datastore resource format to CSV for non-geospatial and GeoJSON for geospatial resources
+datastore_resources <- filter(resources, tolower(format) %in% c('csv', 'geojson'))
+ 
+# load the first datastore resource as a sample
+data <- filter(datastore_resources, row_number()==1) %>% get_resource()
+data
+```
+```{r}
+write_csv(x=data, file ="raw_bodysafe_data.csv")
+```
+```{r}
+raw_bodysafe_data <-
+  read_csv(file="raw_bodysafe_data.csv", show_col_types = FALSE)
+
+clean_bodysafe_data <-
+  clean_names(raw_bodysafe_data)
+head(clean_bodysafe_data)
+```
+```{r}
+clean_bodysafe_data<-
+  clean_bodysafe_data|>
+  select(srv_type, ins_status)
+
+clean_bodysafe_data|>
+  count(ins_status)
+```
+```{r}
+clean_bodysafe_data|>
+  ggplot(aes(x = ins_status)) + # aes abbreviates "aesthetics"
+  geom_bar()
+
+clean_bodysafe_data |>
+  ggplot(aes(x = ins_status)) +
+  geom_bar() +
+  theme_minimal() + # Make the theme neater
+  labs(x = "Inspection Status", y = "Number of Businesses ") # Make labels more meaningful
+```
